@@ -1,0 +1,18 @@
+bindPort = 9527
+allowPorts = [
+	{ start = 50000, end = 65000 }
+	]
+webserver.addr = "0.0.0.0"
+webserver.port = 9999
+webserver.user = "Demo"
+webserver.password = "admin@Demo"
+
+log.to = "log.frps"
+log.level = "info"
+log.maxDays = 30
+
+transport.tcpMux = true
+transport.tcpMuxKeepaliveInterval = 120
+
+auth.method = "token"
+auth.token = "admin@Demo"

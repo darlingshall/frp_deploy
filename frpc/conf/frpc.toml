@@ -1,0 +1,40 @@
+serverAddr = "66.66.66.66"
+serverPort = 9527
+
+
+log.to = "/var/log/frpc.log"
+log.level = "info"
+log.maxDays = 5
+
+# webserver.addr = ""		# Type in your server address, so that only the one who can access your server has right to access the frp client web interface.
+webserver.addr = "0.0.0.0"	# Anyone can access frp client through oven's ip and port, you need marke it to avoid this.
+webserver.port = 9580
+
+
+auth.method = "token"
+auth.token = "admin@Demo"
+
+user = "K02-3003T1S-X018055"
+
+
+
+transport.tcpMux = true
+transport.tcpMuxKeepaliveInterval = 120
+
+
+[[proxies]]
+name = "wnet"
+type = "tcp"
+localIP = "127.0.0.1"
+localPort = 8083
+remotePort = 50013	# Type in this port number when use the public ip of frp server in wnet to add oven device.
+
+
+
+[[proxies]]
+name = "secret_tcp"
+type = "stcp"
+secretKey = "P@ssw0rd"
+localIP = "127.0.0.1"
+localPort = 22          # 嵌入式设备的 SSH 端口
+allowUsers = ["*"]
