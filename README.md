@@ -89,19 +89,31 @@ pause
 
 能看到Dashboard界面即表示成功
 
-### 3.5 设置开机自启动（可选）
-创建 frps.vbs 文件：
+### 3.5 设置开机自启动
+下载NSSM到frps目录
+https://nssm.cc/download
 
-```vbs
-Set WshShell = CreateObject("WScript.Shell")
-WshShell.Run "D:\frps\frps.exe -c D:\frps\frps.toml", 0, False
+```cmd
+cd D:\frps
+
+# 安装服务
+nssm install "frp server" D:\frps\frps.exe
+
+# 设置启动参数
+nssm set "frp server" AppParameters -c D:\frps\frps.toml
+
+# 设置启动目录
+nssm set "frp server" AppDirectory D:\frps
+
+# 设置自动重启（崩溃后5秒重启）
+nssm set "frp server" AppExit Default Restart
+nssm set "frp server" AppThrottle 5000
 ```
-将 frps.vbs 放入启动文件夹：
-
-按 Win + R，输入 shell:startup
-
-将 frps.vbs 复制到打开的文件夹中
-
+或者也可以一键安装
+```cmd
+cd D:\frps
+nssm install "frp server" "D:\frps\frps.exe" -c "D:\frps\frps.toml"
+```
 ## 4. 客户端部署（Linux ARM）
 4.1 目录结构
 ```text
