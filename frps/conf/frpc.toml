@@ -1,0 +1,14 @@
+serverAddr = "127.0.0.1"
+serverPort = 9527
+
+auth.method = "token"
+auth.token = "admin@kolb"
+
+[[visitors]]
+name = "SSH.secret_tcp"           # 可以自定义，但多个[[visitors]]代理时不能重复
+type = "stcp"
+serverName = "K03-8644T1-018053.secret_tcp" # 必须和远端设备配置的名称一致
+secretKey = "P@ssw0rd"
+bindAddr = "127.0.0.1"
+bindPort = 9522                # 服务器上监听的端口，ssh localhost:9522
+
