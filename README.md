@@ -35,6 +35,8 @@ SSH远程访问（通过stcp加密隧道）
 | 客户端 | `frpc.toml` | 客户端配置文件 |
 | 客户端 | `check_frpc.sh` | 健康检查脚本 |
 ## 3. 服务端部署（Windows）
+[> 📌 **Linux用户请参考**：`Install_Frp_Server_In_Ubuntu.md`](D:\0王东亚\frp-deploy\Install_Frp_Server_In_Ubuntu.md)
+
 ### 3.1 目录结构
 ```text
 D:\frps\
