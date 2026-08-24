@@ -18,7 +18,7 @@
 
 本手册与Windows服务端部署手册实现相同功能，请根据实际服务器操作系统选择参考。
 
-[> 📌 **Windows用户请参考**：`FRP服务端部署手册（Windows）.md`](D:\0王东亚\frp-deploy\README.md)
+[> 📌 **Windows用户请参考**：`FRP服务端部署手册（Windows）.md`](README.md)
 
 
 ---
