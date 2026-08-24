@@ -129,7 +129,7 @@ chmod +x /opt/frpc/check_frpc.sh
 ```
 ### 4.3 配置文件 frpc.toml
 ```toml
-serverAddr = "47.106.134.141"
+serverAddr = "服务器IP"
 serverPort = 9527
 
 log.to = "/var/log/frpc.log"
@@ -143,7 +143,7 @@ auth.method = "token"
 auth.token = "admin@Demo"
 
 # 设备序列号（自动获取，参考4.6节）
-user = "K03-8644T1-018053"
+
 
 transport.tcpMux = true
 transport.tcpMuxKeepaliveInterval = 120
@@ -196,17 +196,19 @@ vi /etc/rc.local
 /opt/frpc/check_frpc.sh
 ```
 
-注意：如果设备序列号需要动态获取，修改 frpc.toml 中的 user 字段。
+注意：设备序列号首次运行check_frpc.sh时会自动获取
 
-自动获取序列号的配置方法（可选）：
+自动获取序列号的配置方法（已包含在check_frpc.sh代码中）：
 
 ```bash
-# 编辑 check_frpc.sh，在开头添加：
-PARAM_FILE="/opt/KolbOven/bin/txt/parameter.txt"
-if [ -f "$PARAM_FILE" ]; then
-    SERIAL=$(grep '<Serial>' "$PARAM_FILE" | awk -F'[][]' '{print $2}')
-    if [ -n "$SERIAL" ] && ! grep -q "user = \"$SERIAL\"" "$CONF_PATH"; then
-        sed -i "s/^user = .*/user = \"$SERIAL\"/" "$CONF_PATH"
+if ! grep -q "^user =" "$CONF_PATH"; then
+    if [ -f "$PARAM_FILE" ]; then
+        SERIAL=$(grep '<Serial>' "$PARAM_FILE" | awk -F'[][]' '{print $2}')
+        if [ -n "$SERIAL" ]; then
+            # 在 token 下方自动插入 user 字段
+            sed -i "/auth.token =/a \\\nuser = \"${SERIAL}\"" "$CONF_PATH"
+            NEED_RESTART=1
+        fi
     fi
 fi
 ```
@@ -216,7 +218,7 @@ fi
 /opt/frpc/frpc -c /opt/frpc/frpc.toml
 
 # 后台运行
-nohup /opt/frpc/frpc -c /opt/frpc/frpc.toml > /var/log/frpc.log 2>&1 &
+nohup /opt/frpc/frpc -c "$CONF_PATH" >> /var/log/frpc.log 2>&1 &
 ```
 ### 4.8 验证客户端运行
 ```bash
