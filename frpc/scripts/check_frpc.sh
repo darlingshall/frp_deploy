@@ -2,18 +2,37 @@
 
 CONF_PATH="/opt/frpc/frpc.toml"
 PARAM_FILE="/opt/KolbOven/bin/txt/parameter.txt"
+LOG_FILE="/var/log/frpc_check.log"
+FLAG_FILE="/tmp/frpc_temp_file"
 
 log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" >> "$LOG_FILE"
 }
 
+# 0. 首次启动等待网络（标志文件不存在时）
+if [ ! -f "$FLAG_FILE" ]; then
+    log "首次启动，等待网络连接..."
+    NETWORK_READY=0
+    for i in $(seq 1 60); do
+        if ping -c 1 -W 1 47.106.134.141 >/dev/null 2>&1; then
+            log "网络已连通（耗时 ${i} 秒）"
+            touch "$FLAG_FILE"
+            NETWORK_READY=1
+            break
+        fi
+        if [ $i -eq 60 ]; then
+            log "网络等待超时（60秒），继续尝试启动..."
+            touch "$FLAG_FILE"
+        fi
+        sleep 1
+    done
+fi
 
 # 1. 如果配置文件里还没有配置 user，则动态写入
 if ! grep -q "^user =" "$CONF_PATH"; then
     if [ -f "$PARAM_FILE" ]; then
         SERIAL=$(grep '<Serial>' "$PARAM_FILE" | awk -F'[][]' '{print $2}')
         if [ -n "$SERIAL" ]; then
-            # 在 token 下方自动插入 user 字段
             sed -i "/auth.token =/a \\\nuser = \"${SERIAL}\"" "$CONF_PATH"
             NEED_RESTART=1
         fi
@@ -21,7 +40,6 @@ if ! grep -q "^user =" "$CONF_PATH"; then
 fi
 
 # 2. 常规健康检查与守护
-# 先检查进程是不是根本不在
 PID=$(pgrep -x "frpc")
 NEED_RESTART=0
 
@@ -29,23 +47,16 @@ if [ -z "$PID" ]; then
     log "frpc进程不存在"
     NEED_RESTART=1
 else
-    # 进程存在，检查它是否有对外建立的established连接（假设你的frps端口是你的frp连接端口，这里以检查是否有向外发起的TCP连接为例）
-    # 或者用更简单可靠的方法：检查日志最后更新时间，或者直接结合你的实际情况
-    # 如果 frpc 卡死，通常它与服务端的 TCP 链接会断开或变成 TIME_WAIT / CLOSE_WAIT
-    # 这里我们检查系统里是否存在 frpc 相关的活跃 tcp 连接：
     CONN_COUNT=$(netstat -tnp 2>/dev/null | grep 'frpc' | grep -E 'ESTABLISHED|SYN_SENT' | wc -l)
-    
     if [ "$CONN_COUNT" -eq 0 ]; then
-        # 进程虽然活着，但没有 ESTABLISHED 的连接，说明卡死或断连了
         log "frpc进程存在但无活跃连接"
         NEED_RESTART=1
     fi
 fi
 
-# 如果需要重启
+# 3. 如果需要重启
 if [ "$NEED_RESTART" -eq 1 ]; then
     log "正在重启frpc..."
-    # 使用 -9 确保能杀掉卡住或处于等待状态的进程
     pkill -x frpc 2> /dev/null
     sleep 2
     pkill -9 -x frpc 2>/dev/null
