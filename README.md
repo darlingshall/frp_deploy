@@ -43,7 +43,9 @@ D:\frps\
 ├── frps.exe          # 主程序
 ├── frps.toml         # 配置文件
 ├── log.frps          # 日志文件（自动生成）
-└── start.bat         # 启动脚本（可选）
+├── frpc.exe          # 服务器上的客户端主程序（用来作为visitor远程访问客户端）
+└── frpc.toml         # 客户端配置文件（供frpc主程序使用）
+
 ```
 
 ### 3.2 配置文件 frps.toml
@@ -254,12 +256,28 @@ netstat -tnp | grep frpc
 应能访问到内网设备的Web界面
 
 ## 5.2 SSH隧道测试
+配置文件
+```toml
+serverAddr = "127.0.0.1"
+serverPort = 9527
+
+auth.method = "token"
+auth.token = "admin@Demo"
+
+[[visitors]]                                # 注意这里的代理名称
+name = "SSH.secret_tcp"                     # 可以自定义，但多个[[visitors]]代理时不能重复
+type = "stcp"
+serverName = "K03-8644T1-xxxxxx.secret_tcp" # 必须和远端设备配置的名称一致
+secretKey = "xxxxxxxx"
+bindAddr = "127.0.0.1"
+bindPort = xx22                             # 服务器上监听的端口，ssh localhost:xx22
+```
 ```bash
 # 通过stcp隧道连接（需要FRP客户端支持）
 ./frpc -c frpc.toml
 
 # 或使用nc测试
-nc -v 47.106.134.141 50021
+ssh -p xx22 -o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedAlgorithms=+ssh-rsa user@serverIP
 ```
 5.3 客户端Web管理
 访问客户端管理界面：http://设备IP:9580
@@ -342,14 +360,14 @@ tail -n 20 /var/log/frpc.log
 - 功能验证：SSH隧道正常
 ### 8.2 端口规划
 
-| 端口 | 用途 | 位置 |
-| :--- | :--- | :--- |
-| 9527 | FRP主连接端口 | 服务端 |
-| 9999 | FRP Web管理界面 | 服务端 |
-| 50021 | Web服务穿透端口 | 服务端 |
-| 9580 | FRPC Web管理界面 | 客户端 |
-| 8083 | 本地Web服务 | 客户端 |
-| 22 | SSH服务 | 客户端 |
+| 端口    | 用途 | 位置 |
+|:------| :--- | :--- |
+| 9527  | FRP主连接端口 | 服务端 |
+| 9999  | FRP Web管理界面 | 服务端 |
+| 500xx | Web服务穿透端口 | 服务端 |
+| 9580  | FRPC Web管理界面 | 客户端 |
+| 8083  | 本地Web服务 | 客户端 |
+| 22    | SSH服务 | 客户端 |
 ### 8.3
 文档版本：V1.0
 最后更新：2026-08-24
