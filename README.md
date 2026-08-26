@@ -4,11 +4,10 @@
 通过FRP实现内网Ktouch设备（Linux ARM）的远程访问和管理。
 
 ### 1.2 架构说明
-服务端：Windows Server 2025 std服务器（公网IP: X.X.X.X）
-
-客户端：Linux ARM嵌入式设备（内网）
-
-通信端口：9527
+架构1：frps部署在公有云
+![架构图1.png](%E6%9E%B6%E6%9E%84%E5%9B%BE1.png)
+架构2：frps部署在企业内网
+![架构图2.png](%E6%9E%B6%E6%9E%84%E5%9B%BE2.png)
 
 ### 1.3 实现功能
 内网设备Web服务穿透（端口8083 → 5XXXX）
