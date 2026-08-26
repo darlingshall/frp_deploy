@@ -13,16 +13,24 @@ log() {
 if [ ! -f "$FLAG_FILE" ]; then
     log "首次启动，等待网络连接..."
 
-    # 自动获取网卡名称
+    # 获取网卡名称（优先默认路由，其次取第一个有IP的网卡）
     NET_IF=$(ip route | grep default | awk '{print $5}')
+    if [ -z "$NET_IF" ]; then
+        NET_IF=$(ip -o addr show | grep -v lo | awk '{print $2}' | head -1)
+    fi
 
-    # 先 ping 一次，不通则重启网卡
-    if ! ping -c 1 -W 1 47.106.134.141 >/dev/null 2>&1; then
-        log "网络不通，尝试重启网卡: $NET_IF"
-        ifdown "$NET_IF" 2>/dev/null
-        sleep 2
-        ifup "$NET_IF" 2>/dev/null
-        sleep 3
+    if [ -n "$NET_IF" ]; then
+        log "检测到网卡: $NET_IF"
+        # 先 ping 一次，不通则重启网卡
+        if ! ping -c 1 -W 1 47.106.134.141 >/dev/null 2>&1; then
+            log "网络不通，尝试重启网卡: $NET_IF"
+            ifdown "$NET_IF" 2>/dev/null
+            sleep 2
+            ifup "$NET_IF" 2>/dev/null
+            sleep 3
+        fi
+    else
+        log "未检测到网卡，跳过重启网卡操作"
     fi
 
     for i in $(seq 1 60); do
