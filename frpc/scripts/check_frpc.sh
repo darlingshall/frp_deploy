@@ -12,7 +12,19 @@ log() {
 # 0. 首次启动等待网络（标志文件不存在时）
 if [ ! -f "$FLAG_FILE" ]; then
     log "首次启动，等待网络连接..."
-    NETWORK_READY=0
+
+    # 自动获取网卡名称
+    NET_IF=$(ip route | grep default | awk '{print $5}')
+
+    # 先 ping 一次，不通则重启网卡
+    if ! ping -c 1 -W 1 47.106.134.141 >/dev/null 2>&1; then
+        log "网络不通，尝试重启网卡: $NET_IF"
+        ifdown "$NET_IF" 2>/dev/null
+        sleep 2
+        ifup "$NET_IF" 2>/dev/null
+        sleep 3
+    fi
+
     for i in $(seq 1 60); do
         if ping -c 1 -W 1 47.106.134.141 >/dev/null 2>&1; then
             log "网络已连通（耗时 ${i} 秒）"
